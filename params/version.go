@@ -25,6 +25,10 @@ const (
 	VersionMinor = 8        // Minor version component of the current release
 	VersionPatch = 27       // Patch version component of the current release
 	VersionMeta  = "stable" // Version metadata to append to the version string
+
+	PrivateVersionMajor = 0
+	PrivateVersionMinor = 0
+	PrivateVersionPatch = 1
 )
 
 // Version holds the textual version string.
@@ -39,6 +43,11 @@ var VersionWithMeta = func() string {
 		v += "-" + VersionMeta
 	}
 	return v
+}()
+
+// PrivateVersion holds the textual version string.
+var PrivateVersion = func() string {
+	return fmt.Sprintf("%d.%d.%d", PrivateVersionMajor, PrivateVersionMinor, PrivateVersionPatch)
 }()
 
 // ArchiveVersion holds the textual version string used for Geth archives.
@@ -60,5 +69,8 @@ func VersionWithCommit(gitCommit string) string {
 	if len(gitCommit) >= 8 {
 		vsn += "-" + gitCommit[:8]
 	}
+
+	vsn += "(private-v" + PrivateVersion + ")"
+
 	return vsn
 }
