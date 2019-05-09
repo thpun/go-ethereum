@@ -27,6 +27,7 @@ import (
 
 	cli "gopkg.in/urfave/cli.v1"
 
+	"github.com/ethereum/go-ethereum/abe"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/dashboard"
 	"github.com/ethereum/go-ethereum/eth"
@@ -157,6 +158,8 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}
 	utils.RegisterEthService(stack, &cfg.Eth)
 
+	RegisterABEService(stack)
+
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
 	}
@@ -210,4 +213,11 @@ func dumpConfig(ctx *cli.Context) error {
 	dump.Write(out)
 
 	return nil
+}
+
+// RegisterABEService configures ABE and adds it to the given node.
+func RegisterABEService(stack *node.Node) {
+	stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return abe.New()
+	})
 }

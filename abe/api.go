@@ -1,11 +1,7 @@
 package abe
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"time"
-
-	"github.com/thpun/ABE/gpsw06"
 )
 
 type PublicABEAPI struct {
@@ -14,7 +10,7 @@ type PublicABEAPI struct {
 
 type Envelope struct {
 	Header []byte `json:"header"`
-	Body []byte `json:"body"`
+	Body   []byte `json:"body"`
 }
 
 func NewPublicABEAPI(abeService *ABEService) *PublicABEAPI {
@@ -25,7 +21,7 @@ func (s *PublicABEAPI) Hi() string {
 	return time.Now().Format(time.RFC850)
 }
 
-func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
+/* func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
 	// Convert attr from []string to []Attribute
 	labels := gpsw06.NewAttributes(attr)
 
@@ -44,6 +40,38 @@ func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
 	}, nil
 }
 
+func aesgcm_encrypt(_key, _plaintext []byte) ([]byte, error) {
+	key := _key[0:32]
+	nonce := _key[32:44]
+	data := _key[44:]
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	return aesgcm.Seal(nil, nonce, _plaintext, data), nil
+}
+
+func aesgcm_decrypt(_key, _ciphertext []byte) ([]byte, error) {
+	key := _key[0:32]
+	nonce := _key[32:44]
+	data := _key[44:]
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	return aesgcm.Open(nil, nonce, _ciphertext, data)
+}
+
 func (s *PublicABEAPI) Encrypt(plaintext string, attr []string, msk string) (string, error) {
 	// TODO: De-serialize msk
 	// TODO: Convert []string to map[int]struct{}
@@ -54,22 +82,6 @@ func (s *PublicABEAPI) Encrypt(plaintext string, attr []string, msk string) (str
 	header, err := algo.Encrypt(sessionKey, _, msk)
 	if err != nil {
 		return nil, err
-	}
-
-	func aesgcm_encrypt(_key, _plaintext []byte) ([]byte, error) {
-		key := _key[0:32]
-		nonce := _key[32:44]
-		data := _key[44:]
-
-		block, err := aes.NewCipher(key)
-		if err != nil {
-			return nil, err
-		}
-		aesgcm, err := cipher.NewGCM(block)
-		if err != nil {
-			return nil, err
-		}
-		return aesgcm.Seal(nil, nonce, _plaintext, data), nil
 	}
 
 	ciphertext, err := aesgcm_encrypt(sessionKey.Marshal(), []byte(plaintext))
@@ -107,25 +119,9 @@ func (s *PublicABEAPI) Decrypt(ciphertext, decryptKey string) (string, error) {
 	algo, _ := gpsw06.NewGPSW06()
 	sessionKey, err := algo.Decrypt(envelope.Header, _)
 
-	func aesgcm_decrypt(_key, _ciphertext []byte) ([]byte, error) {
-		key := _key[0:32]
-		nonce := _key[32:44]
-		data := _key[44:]
-
-		block, err := aes.NewCipher(key)
-		if err != nil {
-			return nil, err
-		}
-		aesgcm, err := cipher.NewGCM(block)
-		if err != nil {
-			return nil, err
-		}
-		return aesgcm.Open(nil, nonce, _ciphertext, data)
-	}
-
 	plaintext, err := aesgcm_decrypt(sessionKey, envelope.Body)
 	if err != nil {
 		return nil, err
 	}
 	return string(plaintext), nil
-}
+} */
