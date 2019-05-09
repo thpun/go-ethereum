@@ -527,6 +527,13 @@
 			"revisionTime": "2018-11-28T10:09:59Z"
 		},
 		{
+			"checksumSHA1": "rU1wz47dNWXehpdhbXK48JHYvfg=",
+			"path": "github.com/thpun/ABE",
+			"revision": "e8ebc998434dd965739f8291dd1c79eb9458c7ce",
+			"revisionTime": "2019-05-09T10:36:58Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "nD6S4KB0S+YHxVMDDE+w3PyXaMk=",
 			"path": "github.com/uber/jaeger-client-go",
 			"revision": "f7e0d4744fa6d5287c53b8ac8d4f83089ce07ce8",
@@ -953,5 +960,5 @@
 			"revisionTime": "2017-08-11T01:42:03Z"
 		}
 	],
-	"rootPath": "github.com/ethereum/go-ethereum"
+	"rootPath": "github.com/thpun/go-ethereum"
 }
