@@ -1,6 +1,11 @@
 package abe
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/json"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/thpun/ABE/gpsw06"
 	"time"
 )
 
@@ -9,8 +14,8 @@ type PublicABEAPI struct {
 }
 
 type Envelope struct {
-	Header []byte `json:"header"`
-	Body   []byte `json:"body"`
+	Header hexutil.Bytes `json:"header"`
+	Body   hexutil.Bytes `json:"body"`
 }
 
 func NewPublicABEAPI(abeService *ABEService) *PublicABEAPI {
@@ -21,7 +26,7 @@ func (s *PublicABEAPI) Hi() string {
 	return time.Now().Format(time.RFC850)
 }
 
-/* func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
+func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
 	// Convert attr from []string to []Attribute
 	labels := gpsw06.NewAttributes(attr)
 
@@ -33,10 +38,20 @@ func (s *PublicABEAPI) Hi() string {
 
 	// Generate public key and master secret key
 	pk, msk := algo.Setup()
-	// TODO: Serialize keys
-	return map[string]interface{}{
-		"pk":  "",
-		"msk": "",
+
+	// Serialize the keys
+	pkStr, err := pk.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	mskStr, err := msk.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]hexutil.Bytes{
+		"pk":  pkStr,
+		"msk": mskStr,
 	}, nil
 }
 
@@ -72,56 +87,90 @@ func aesgcm_decrypt(_key, _ciphertext []byte) ([]byte, error) {
 	return aesgcm.Open(nil, nonce, _ciphertext, data)
 }
 
-func (s *PublicABEAPI) Encrypt(plaintext string, attr []string, msk string) (string, error) {
-	// TODO: De-serialize msk
-	// TODO: Convert []string to map[int]struct{}
+func (s *PublicABEAPI) Encrypt(plaintext hexutil.Bytes, attr []int, pk hexutil.Bytes) (hexutil.Bytes, error) {
+	//  De-serialize msk
+	_pk := gpsw06.PublicKey{}
+	if _, err := _pk.Unmarshal(pk); err != nil {
+		return nil, err
+	}
 
-	algo, _ := gpsw06.NewGPSW06()
+	// Convert []string to map[int]struct{}
+	_attr := make(map[int]struct{})
+	for _, v := range attr {
+		_attr[v] = struct{}{}
+	}
+
+	algo, _ := gpsw06.NewGPSW06(nil)
 	sessionKey := gpsw06.NewMessage().Rand()
 
-	header, err := algo.Encrypt(sessionKey, _, msk)
+	header, err := algo.Encrypt(sessionKey, _attr, &_pk)
 	if err != nil {
 		return nil, err
 	}
 
-	ciphertext, err := aesgcm_encrypt(sessionKey.Marshal(), []byte(plaintext))
+	headerStr, err := header.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(Envelope{header, ciphertext})
+	ciphertext, err := aesgcm_encrypt(sessionKey.Marshal(), plaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(Envelope{headerStr, ciphertext})
 }
 
-func (s *PublicABEAPI) KeyGen(tree, msk string) (string, error) {
-	// TODO: De-serialize tree
-	// TODO: De-serialize msk
+func (s *PublicABEAPI) Keygen(tree string, msk hexutil.Bytes) (hexutil.Bytes, error) {
+	// De-serialize tree
+	_tree, err := gpsw06.NodeFromJSON([]byte(tree))
+	if err != nil {
+		return nil, err
+	}
+	// De-serialize msk
+	_msk := gpsw06.MasterKey{}
+	if _, err := _msk.Unmarshal(msk); err != nil {
+		return nil, err
+	}
 
-	algo, _ := gpsw06.NewGPSW06()
-	dk, err := algo.KeyGen(_, _)
+	algo, _ := gpsw06.NewGPSW06(nil)
+	dk, err := algo.KeyGen(_tree, &_msk)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Serialize dk
-	return dk, nil
+	// Serialize dk
+	return dk.Marshal()
 }
 
-func (s *PublicABEAPI) Decrypt(ciphertext, decryptKey string) (string, error) {
-	// TODO: Deserialize decryptKey
+func (s *PublicABEAPI) Decrypt(ciphertext, decryptKey hexutil.Bytes) (hexutil.Bytes, error) {
+	// Deserialize decryptKey
+	dk := gpsw06.DecryptKey{}
+	if _, err := dk.Unmarshal(decryptKey); err != nil {
+		return nil, err
+	}
 
 	var envelope = Envelope{}
 	if err := json.Unmarshal(ciphertext, &envelope); err != nil {
 		return nil, err
 	} else if len(envelope.Header) == 0 || len(envelope.Body) == 0 {
-		return nil, errors.New("Invalid ciphertext")
+		return nil, ErrInvalidCiphertext
 	}
 
-	algo, _ := gpsw06.NewGPSW06()
-	sessionKey, err := algo.Decrypt(envelope.Header, _)
-
-	plaintext, err := aesgcm_decrypt(sessionKey, envelope.Body)
+	algo, _ := gpsw06.NewGPSW06(nil)
+	// Deserialize envelope header, which is ABE ciphertext
+	ct := gpsw06.Ciphertext{}
+	if _, err := ct.Unmarshal(envelope.Header); err != nil {
+		return nil, err
+	}
+	sessionKey, err := algo.Decrypt(&ct, &dk)
 	if err != nil {
 		return nil, err
 	}
-	return string(plaintext), nil
-} */
+
+	plaintext, err := aesgcm_decrypt(sessionKey.Marshal(), envelope.Body)
+	if err != nil {
+		return nil, err
+	}
+	return plaintext, nil
+}
