@@ -527,10 +527,10 @@
 			"revisionTime": "2018-11-28T10:09:59Z"
 		},
 		{
-			"checksumSHA1": "8b7+be2PxOQkdAgk28xFZn/sJPo=",
+			"checksumSHA1": "rI+a8YDbcDsDlM5wfFwxc4wQato=",
 			"path": "github.com/thpun/ABE",
-			"revision": "3a91559df621cee010e7bf0bb11302b9f9e40e67",
-			"revisionTime": "2019-05-09T16:20:16Z",
+			"revision": "2166b37193a445a7af0aa2deb05fb189bb38bed3",
+			"revisionTime": "2019-08-27T14:31:02Z",
 			"tree": true
 		},
 		{
