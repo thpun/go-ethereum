@@ -1,32 +1,25 @@
 package abe
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/thpun/ABE/gpsw06"
 	"time"
 )
 
-type PublicABEAPI struct {
+type PublicGPSW06API struct {
 	abeService *ABEService
 }
 
-type Envelope struct {
-	Header hexutil.Bytes `json:"header"`
-	Body   hexutil.Bytes `json:"body"`
+func NewPublicGPSW06API(abeService *ABEService) *PublicGPSW06API {
+	return &PublicGPSW06API{abeService}
 }
 
-func NewPublicABEAPI(abeService *ABEService) *PublicABEAPI {
-	return &PublicABEAPI{abeService}
-}
-
-func (s *PublicABEAPI) Hi() string {
+func (s *PublicGPSW06API) Hi() string {
 	return time.Now().Format(time.RFC850)
 }
 
-func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
+func (s *PublicGPSW06API) Setup(attr []string) (interface{}, error) {
 	// Convert attr from []string to []Attribute
 	labels := gpsw06.NewAttributes(attr)
 
@@ -55,39 +48,7 @@ func (s *PublicABEAPI) Setup(attr []string) (interface{}, error) {
 	}, nil
 }
 
-func aesgcm_encrypt(_key, _plaintext []byte) ([]byte, error) {
-	key := _key[0:32]
-	nonce := _key[32:44]
-	data := _key[44:]
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-	return aesgcm.Seal(nil, nonce, _plaintext, data), nil
-}
-
-func aesgcm_decrypt(_key, _ciphertext []byte) ([]byte, error) {
-	key := _key[0:32]
-	nonce := _key[32:44]
-	data := _key[44:]
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-	return aesgcm.Open(nil, nonce, _ciphertext, data)
-}
-
-func (s *PublicABEAPI) Encrypt(plaintext hexutil.Bytes, attr []int, pk hexutil.Bytes) (hexutil.Bytes, error) {
+func (s *PublicGPSW06API) Encrypt(plaintext hexutil.Bytes, attr []int, pk hexutil.Bytes) (hexutil.Bytes, error) {
 	//  De-serialize msk
 	_pk := gpsw06.PublicKey{}
 	if _, err := _pk.Unmarshal(pk); err != nil {
@@ -121,7 +82,7 @@ func (s *PublicABEAPI) Encrypt(plaintext hexutil.Bytes, attr []int, pk hexutil.B
 	return json.Marshal(Envelope{headerStr, ciphertext})
 }
 
-func (s *PublicABEAPI) Keygen(tree string, msk hexutil.Bytes) (hexutil.Bytes, error) {
+func (s *PublicGPSW06API) Keygen(tree string, msk hexutil.Bytes) (hexutil.Bytes, error) {
 	// De-serialize tree
 	_tree, err := gpsw06.NodeFromJSON([]byte(tree))
 	if err != nil {
@@ -143,7 +104,7 @@ func (s *PublicABEAPI) Keygen(tree string, msk hexutil.Bytes) (hexutil.Bytes, er
 	return dk.Marshal()
 }
 
-func (s *PublicABEAPI) Decrypt(ciphertext, decryptKey hexutil.Bytes) (hexutil.Bytes, error) {
+func (s *PublicGPSW06API) Decrypt(ciphertext, decryptKey hexutil.Bytes) (hexutil.Bytes, error) {
 	// Deserialize decryptKey
 	dk := gpsw06.DecryptKey{}
 	if _, err := dk.Unmarshal(decryptKey); err != nil {

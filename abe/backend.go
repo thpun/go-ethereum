@@ -18,9 +18,9 @@ func (service *ABEService) Protocols() []p2p.Protocol { return nil }
 func (serivce *ABEService) APIs() []rpc.API {
 	return []rpc.API{
 		{
-			Namespace: "abe",
+			Namespace: "gpsw06",
 			Version:   "1.0",
-			Service:   NewPublicABEAPI(serivce),
+			Service:   NewPublicGPSW06API(serivce),
 			Public:    true,
 		},
 	}
