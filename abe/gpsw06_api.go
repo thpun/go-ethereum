@@ -49,7 +49,7 @@ func (s *PublicGPSW06API) Setup(attr []string) (interface{}, error) {
 }
 
 func (s *PublicGPSW06API) Encrypt(plaintext hexutil.Bytes, attr []int, pk hexutil.Bytes) (hexutil.Bytes, error) {
-	//  De-serialize msk
+	//  De-serialize pk
 	_pk := gpsw06.PublicKey{}
 	if _, err := _pk.Unmarshal(pk); err != nil {
 		return nil, err

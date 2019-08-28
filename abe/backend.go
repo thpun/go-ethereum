@@ -23,6 +23,12 @@ func (serivce *ABEService) APIs() []rpc.API {
 			Service:   NewPublicGPSW06API(serivce),
 			Public:    true,
 		},
+		{
+			Namespace: "bsw07",
+			Version:   "1.0",
+			Service:   NewPublicBSW07API(serivce),
+			Public:    true,
+		},
 	}
 }
 

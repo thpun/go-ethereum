@@ -12,8 +12,8 @@ type Element struct {
 }
 
 type tempEl struct {
-	Field string          `json:"field"`
-	E     json.RawMessage `json:"e"`
+	Field string `json:"field"`
+	E     []byte `json:"e"`
 }
 
 type G = Element
@@ -156,6 +156,15 @@ func NewMessage() *Message {
 func (msg *Message) Rand() *Message {
 	msg.M.E.Rand()
 	return msg
+}
+
+func (msg *Message) Marshal() []byte {
+	return msg.M.E.Bytes()
+}
+
+func (msg *Message) Unmarshal(b []byte) error {
+	msg.M.E.SetBytes(b)
+	return nil
 }
 
 func newPolynomial(deg int) *polynomial {

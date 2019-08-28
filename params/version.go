@@ -27,8 +27,8 @@ const (
 	VersionMeta  = "stable" // Version metadata to append to the version string
 
 	PrivateVersionMajor = 0
-	PrivateVersionMinor = 0
-	PrivateVersionPatch = 1
+	PrivateVersionMinor = 2
+	PrivateVersionPatch = 0
 )
 
 // Version holds the textual version string.
