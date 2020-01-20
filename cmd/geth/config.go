@@ -27,6 +27,7 @@ import (
 
 	cli "gopkg.in/urfave/cli.v1"
 
+	"github.com/ethereum/go-ethereum/abe"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/node"
@@ -155,6 +156,8 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}
 	utils.RegisterEthService(stack, &cfg.Eth)
 
+	RegisterABEService(stack)
+
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
 	shhEnabled := enableWhisper(ctx)
 	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
@@ -208,4 +211,11 @@ func dumpConfig(ctx *cli.Context) error {
 	dump.Write(out)
 
 	return nil
+}
+
+// RegisterABEService configures ABE and adds it to the given node.
+func RegisterABEService(stack *node.Node) {
+	stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return abe.New()
+	})
 }
